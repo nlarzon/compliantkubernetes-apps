@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 here="$(dirname "$(readlink -f "$0")")"
 NAMESPACE="ck8s-integration-test"

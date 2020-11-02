@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This script takes care of bootstrapping ck8s for service applications.
 # It's not to be executed on its own but rather via `ck8s (bootstrap|apply)`.

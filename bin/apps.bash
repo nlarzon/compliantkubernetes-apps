@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This script takes care of deploying the ck8s service applications.
 # It's not to be executed on its own but rather via `ck8s (apps|apply)`.

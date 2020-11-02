@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 if [ "$#" -ne 1 ] || [ "$1" != "positive" ] && [ "$1" != "negative" ]

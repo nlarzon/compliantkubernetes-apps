@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Pulls vendors crds from githup. If the chart version is changed (updated) in helmfile,
 # the crd version needs to be changed here to reflect the change.

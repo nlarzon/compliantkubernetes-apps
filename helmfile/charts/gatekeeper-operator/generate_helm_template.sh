@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 scriptdir="$(dirname "$0")"
 cd "$scriptdir" || exit 1
 cp ./../../deploy/gatekeeper.yaml "${PWD}/helm-modifications/_temp.yaml"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # This script builds and runs the dev docker file with mounted Home directory.
 set -e
 SCRIPTS_PATH="$(dirname "$(readlink -f "$0")")"
