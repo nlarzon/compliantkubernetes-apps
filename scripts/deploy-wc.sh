@@ -26,6 +26,12 @@ kubectl -n kube-system create secret generic elasticsearch \
 kubectl -n fluentd create secret generic elasticsearch \
     --from-literal=password="${elasticsearch_password}" --dry-run -o yaml | kubectl apply -f -
 
+# The control-plane label is required to exclude the kube-system namespace
+# from being validated by the gatekeeper. Without it controller-manager and
+# scheduler become unhealthy after the node restart.
+echo "Add control-plane label to kube-system namespace" >&2
+kubectl label namespace kube-system control-plane="true" --overwrite=true
+
 echo "Installing helm charts" >&2
 cd "${SCRIPTS_PATH}/../helmfile"
 declare -a helmfile_opt_flags
