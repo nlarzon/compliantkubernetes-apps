@@ -526,47 +526,6 @@ releases:
   values:
   - values/fluentd-user.yaml.gotmpl
 
-# gatekeeper-operator
-- name: gatekeeper-operator
-  namespace: gatekeeper-system
-  labels:
-    app: gatekeeper-operator
-  chart: ./charts/gatekeeper-operator
-  version: 1.6.0
-  installed: {{ .Values.opa.enabled }}
-  missingFileHandler: Error
-  wait: true
-  values:
-  - values/gatekeeper-operator.yaml.gotmpl
-
-# gatekeeper-templates
-- name: gatekeeper-templates
-  namespace: gatekeeper-system
-  labels:
-    app: gatekeeper-templates
-  chart: ./charts/gatekeeper-templates
-  version: 1.6.0
-  installed: {{ .Values.opa.enabled }}
-  missingFileHandler: Error
-  needs:
-  - gatekeeper-system/gatekeeper-operator
-  values:
-  - values/gatekeeper-templates.yaml.gotmpl
-
-# gatekeeper-constraints
-- name: gatekeeper-constraints
-  namespace: gatekeeper-system
-  labels:
-    app: gatekeeper-constraints
-  chart: ./charts/gatekeeper-constraints
-  version: 1.6.0
-  installed: {{ .Values.opa.enabled }}
-  missingFileHandler: Error
-  needs:
-  - gatekeeper-system/gatekeeper-templates
-  values:
-  - values/gatekeeper-constraints.yaml.gotmpl
-
 # TODO: Make this optional! Users may not want any alerts by default.
 # It should also be separate from the alerts we use. Users should not need
 # to care about system components that they cannot touch anyway.

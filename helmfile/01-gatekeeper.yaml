@@ -1,0 +1,60 @@
+# Defult settings to use with helm.
+helmDefaults:
+  timeout: 600
+  createNamespace: false
+
+# Environments
+environments:
+  workload_cluster:
+    values:
+      - "{{ requiredEnv "CK8S_CONFIG_PATH" }}/wc-config.yaml"
+    secrets:
+      - "{{ requiredEnv "CK8S_CONFIG_PATH" }}/secrets.yaml"
+
+# The desired state of Helm releases.
+releases:
+
+# Workload cluster releases
+{{ if eq .Environment.Name "workload_cluster" }}
+# gatekeeper-operator
+- name: gatekeeper-operator
+  namespace: gatekeeper-system
+  labels:
+    app: gatekeeper-operator
+  chart: ./charts/gatekeeper-operator
+  version: 1.6.0
+  installed: {{ .Values.opa.enabled }}
+  missingFileHandler: Error
+  wait: true
+  values:
+  - values/gatekeeper-operator.yaml.gotmpl
+
+# gatekeeper-templates
+- name: gatekeeper-templates
+  namespace: gatekeeper-system
+  labels:
+    app: gatekeeper-templates
+  chart: ./charts/gatekeeper-templates
+  version: 1.6.0
+  installed: {{ .Values.opa.enabled }}
+  missingFileHandler: Error
+  needs:
+  - gatekeeper-system/gatekeeper-operator
+  values:
+  - values/gatekeeper-templates.yaml.gotmpl
+
+# gatekeeper-constraints
+- name: gatekeeper-constraints
+  namespace: gatekeeper-system
+  labels:
+    app: gatekeeper-constraints
+  chart: ./charts/gatekeeper-constraints
+  version: 1.6.0
+  installed: {{ .Values.opa.enabled }}
+  missingFileHandler: Error
+  needs:
+  - gatekeeper-system/gatekeeper-templates
+  values:
+  - values/gatekeeper-constraints.yaml.gotmpl
+
+{{ end }}
