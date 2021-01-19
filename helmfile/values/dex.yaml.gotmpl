@@ -64,6 +64,7 @@ config:
       redirectURIs:
       - http://localhost:8000
       - http://localhost:8080/oauth2/callback
+      - https://dashboard.eu-1.stag.cn-apps.net/oauth2/callback
       - https://ck8sdash.{{ .Values.global.baseDomain }}/oauth2/callback
       - https://ck8sdash.{{ .Values.global.opsDomain }}/oauth2/callback
     - id: grafana
