@@ -69,6 +69,22 @@ restic:
     requests:
       cpu: 100m
       memory: 100Mi
+  # Restic must be able to run on both elastisys and customer nodes in order
+  # to backup volumes mounted there.
+  tolerations:
+  - key: "nodeType"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+# Velero should run on elastisys nodes, not the customers.
+nodeSelector:
+  nodeType: elastisys
+# We taint elastisys nodes in WC, so make sure velero can still run there.
+tolerations:
+- key: "nodeType"
+  operator: "Equal"
+  value: "elastisys"
+  effect: "NoSchedule"
 
 # Backup schedules to create.
 # Eg:

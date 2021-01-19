@@ -25,7 +25,7 @@ persistence:
     jobservice:
       size: 1Gi
     database:
-      size: 1Gi
+      size: 5Gi
     redis:
       size: 1Gi
   imageChartStorage:
@@ -88,3 +88,7 @@ notary:
 database:
   internal:
     password: {{ .Values.harbor.databasePassword }}
+
+# We use Trivy rather than Clair
+clair:
+  enabled: false

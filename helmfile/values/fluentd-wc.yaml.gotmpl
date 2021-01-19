@@ -285,12 +285,3 @@ extraConfigMaps:
 {{ $key | indent 2 }}: |-
 {{ $value | indent 4 }}
 {{- end }}
-
-tolerations:
-- effect: NoSchedule
-  key: "node-role.kubernetes.io/master"
-  value: ""
-
-# Only run on control plane nodes
-nodeSelector:
-  node-role.kubernetes.io/master: ""

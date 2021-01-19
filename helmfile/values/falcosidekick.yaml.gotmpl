@@ -14,3 +14,19 @@ config:
     hostport: {{ .Values.falco.alerts.hostPort }}
     minimumpriority: {{ .Values.falco.alerts.priority }}
   {{ end }}
+
+tolerations:
+- key: "nodeType"
+  operator: "Equal"
+  value: "elastisys"
+  effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: nodeType
+          operator: In
+          values:
+          - elastisys

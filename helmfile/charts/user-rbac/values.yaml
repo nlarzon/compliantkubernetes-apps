@@ -1,4 +1,4 @@
 namespaces: []
 users: []
-create_namespaces: true
+create_namespaces: false
 enableFalcoViewer: false

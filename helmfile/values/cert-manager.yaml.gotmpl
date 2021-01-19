@@ -1,0 +1,41 @@
+tolerations:
+- key: "nodeType"
+  operator: "Exists"
+  effect: "NoSchedule"
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: nodeType
+          operator: In
+          values:
+          - elastisys
+webhook:
+  tolerations:
+  - key: "nodeType"
+    operator: "Exists"
+    effect: "NoSchedule"
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: nodeType
+            operator: In
+            values:
+            - elastisys
+cainjector:
+  tolerations:
+  - key: "nodeType"
+    operator: "Exists"
+    effect: "NoSchedule"
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: nodeType
+            operator: In
+            values:
+            - elastisys

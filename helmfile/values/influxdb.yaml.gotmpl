@@ -19,7 +19,7 @@ elastisys_custom:
       service_cluster:
         data_size_limit: {{ .Values.influxDB.metrics.sizeSc }}
       workload_cluster:
-        data_size_limit: {{ .Values.influxDB.metrics.sizeSc }}
+        data_size_limit: {{ .Values.influxDB.metrics.sizeWc }}
 
 serviceAccount:
   create: false
@@ -77,7 +77,7 @@ initScripts:
   scripts:
     init.iql: |+
       CREATE DATABASE "service_cluster" WITH DURATION {{ .Values.influxDB.retention.ageSc }} REPLICATION 1 NAME service_cluster_rp;
-      CREATE DATABASE "workload_cluster" WITH DURATION {{ .Values.influxDB.retention.ageSc }} REPLICATION 1 NAME workload_cluster_rp;
+      CREATE DATABASE "workload_cluster" WITH DURATION {{ .Values.influxDB.retention.ageWc }} REPLICATION 1 NAME workload_cluster_rp;
 
 extraContainers:
   - name: influxdb-node-exporter
