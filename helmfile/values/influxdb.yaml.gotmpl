@@ -102,8 +102,6 @@ tolerations:  {{- toYaml .Values.influxDB.tolerations | nindent 2 }}
 ingress:
   enabled: true
   tls: true
-  annotations:
-    cert-manager.io/issuer: {{ .Values.global.issuer }}
   secretName: influxdb-ingress-cert
   hostname: influxdb.{{ .Values.global.opsDomain }}
 
