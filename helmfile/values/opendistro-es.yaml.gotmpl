@@ -333,7 +333,6 @@ elasticsearch:
       enabled: true
       annotations:
         nginx.ingress.kubernetes.io/backend-protocol: HTTP
-        cert-manager.io/issuer: {{ .Values.global.issuer }}
         nginx.ingress.kubernetes.io/proxy-body-size: 8m
         {{ if and .Values.externalTrafficPolicy.local .Values.externalTrafficPolicy.whitelistRange.elasticsearch }}
         nginx.ingress.kubernetes.io/whitelist-source-range: {{ .Values.externalTrafficPolicy.whitelistRange.elasticsearch }}
@@ -353,7 +352,6 @@ kibana:
     enabled: true
     annotations:
       nginx.ingress.kubernetes.io/backend-protocol: HTTP
-      cert-manager.io/issuer: {{ .Values.global.issuer }}
       {{ if and .Values.externalTrafficPolicy.local .Values.externalTrafficPolicy.whitelistRange.kibana }}
       nginx.ingress.kubernetes.io/whitelist-source-range: {{ .Values.externalTrafficPolicy.whitelistRange.kibana }}
       {{ end }}
