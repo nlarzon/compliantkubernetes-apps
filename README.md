@@ -290,3 +290,141 @@ See <https://compliantkubernetes.io/operator-manual/>.
   Unfortunately the policies breaks cert-manager so they have been set to "dry-run" by default.
 
 For more, please the the public GitHub issues: <https://github.com/elastisys/compliantkubernetes-apps/issues>.
+
+## Manual certificate management
+
+All of the certificates described below must be inserted into the clusters as secrets with the specified names.
+This can be done using a command like this:
+
+```
+kubectl create secret tls secret-name --cert=cert-file --key=secret-key-file
+```
+
+Note that the certificates used must match the host, either exactly or with a wildcard.
+If you use wildcard certificates, you should still create all the secrets even though many of them will contain identical copies of the same certificate.
+
+**Service cluster certificates**
+
+```yaml
+- namespace: ck8sdash
+  secret: ck8sdash-cert
+  host: ck8sdash.$OPS_DOMAIN
+- namespace: dex
+  secret: dex-tls
+  host: dex.$BASE_DOMAIN
+- namespace: monitoring
+  secret: user-grafana-tls
+  host: grafana.$BASE_DOMAIN
+- namespace: monitoring
+  secret: grafana-ops-general-tls
+  host: grafana.$OPS_DOMAIN
+- namespace: harbor
+  secret: harbor-core-ingress-cert
+  host: harbor.$BASE_DOMAIN
+- namespace: harbor
+  secret: harbor-notary-ingress-cert
+  host: notary.harbor.$BASE_DOMAIN
+- namespace: influxdb-prometheus
+  secret: influxdb-ingress-cert
+  host: influxdb.$OPS_DOMAIN
+- namespace: elastic-system
+  secret: opendistro-es-es-ingress-cert
+  host: elastic.$OPS_DOMAIN
+- namespace: elastic-system
+  secret: opendistro-es-kibana-ingress-cert
+  host: kibana.$BASE_DOMAIN
+```
+
+**Workload clusters**
+
+```yaml
+- namespace: ck8sdash
+  secret: ck8sdash-cert
+  host: ck8sdash.$WORKLOAD_DOMAIN
+- namespace: kube-system
+  secret: kubeapi-metrics-cert
+  host: kube-apiserver.$WORKLOAD_DOMAIN
+- namespace: monitoring
+  secret: alertmanager-certs
+  host: alertmanager.$WORKLOAD_DOMAIN
+- namespace: monitoring
+  secret: prometheus-general-tls
+  host: prometheus.$WORKLOAD_DOMAIN
+```
+
+To help with the process of creating all these secrets, you may use the following bash snippets.
+They assume that you use wildcard certificates and that you set the path to the certificate and key at the top of each snippet.
+If you copy/paste the snippets in your terminal, they will by default print the commands so you can double check before running them.
+If you would like to run them directly, simply uncomment the relevant lines.
+
+Snippet for service cluster `$BASE_DOMAIN` secrets.
+```bash
+# Service cluster
+CERTIFICATE_PATH="base-tls.crt"
+KEY_PATH="base-tls.key"
+
+# Create map of secret-name -> namespace
+declare -A base_certificates
+base_certificates=(
+  ["ck8sdash-cert"]="ck8sdash"
+  ["dex-tls"]="dex"
+  ["user-grafana-tls"]="monitoring"
+  ["grafana-ops-general-tls"]="monitoring"
+  ["harbor-core-ingress-cert"]="harbor"
+  ["harbor-notary-ingress-cert"]="harbor"
+  ["influxdb-ingress-cert"]="influxdb-prometheus"
+  ["opendistro-es-es-ingress-cert"]="elastic-system"
+  ["opendistro-es-kibana-ingress-cert"]="elastic-system"
+)
+
+# Create BASE_DOMAIN secrets
+for secret_name in "${!base_certificates[@]}"
+do
+    echo "kubectl -n ${base_certificates[${secret_name}]} create secret tls ${secret_name} --cert=${CERTIFICATE_PATH} --key=${KEY_PATH}"
+    # kubectl -n "${base_certificates[${secret_name}]}" create secret tls "${secret_name}" --cert="${CERTIFICATE_PATH}" --key="${KEY_PATH}"
+done
+```
+
+Snippet for service cluster `$OPS_DOMAIN` secrets.
+```bash
+# Service cluster
+CERTIFICATE_PATH="ops-tls.crt"
+KEY_PATH="ops-tls.key"
+
+declare -A ops_certificates
+ops_certificates=(
+  ["ck8sdash-cert"]="ck8sdash"
+  ["grafana-ops-general-tls"]="monitoring"
+  ["influxdb-ingress-cert"]="influxdb-prometheus"
+  ["opendistro-es-es-ingress-cert"]="elastic-system"
+)
+
+# Create OPS_DOMAIN secrets
+for secret_name in "${!ops_certificates[@]}"
+do
+    echo "kubectl -n ${ops_certificates[${secret_name}]} create secret tls ${secret_name} --cert=${CERTIFICATE_PATH} --key=${KEY_PATH}"
+    # kubectl -n "${ops_certificates[${secret_name}]}" create secret tls "${secret_name}" --cert="${CERTIFICATE_PATH}" --key="${KEY_PATH}"
+done
+```
+
+Snippet for workload cluster secrets.
+```bash
+# Workload cluster
+CERTIFICATE_PATH="tls.crt"
+KEY_PATH="tls.key"
+
+declare -A certificates
+certificates=(
+  ["ck8sdash-cert"]="ck8sdash"
+  ["kubeapi-metrics-cert"]="kube-system"
+  ["alertmanager-certs"]="monitoring"
+  ["prometheus-general-tls"]="monitoring"
+)
+
+# Create WORKLOAD_DOMAIN secrets
+for secret_name in "${!certificates[@]}"
+do
+    echo "kubectl -n ${certificates[${secret_name}]} create secret tls ${secret_name} --cert=${CERTIFICATE_PATH} --key=${KEY_PATH}"
+    # kubectl -n "${certificates[${secret_name}]}" create secret tls "${secret_name}" --cert="${CERTIFICATE_PATH}" --key="${KEY_PATH}"
+done
+```
