@@ -18,8 +18,8 @@ export common_path="${here}/common.bash"
 bootstrap_init() {
     log_info "Running post infra script"
     # shellcheck disable=SC1090
-    source "${scripts_path}/post-infra-common.sh" \
-        "${config[infrastructure_file]}"
+    # source "${scripts_path}/post-infra-common.sh" \
+        # "${config[infrastructure_file]}"
 }
 
 bootstrap_run_sc() {
@@ -44,7 +44,7 @@ bootstrap_sc() {
 }
 
 bootstrap_wc() {
-    bootstrap_init
+    # bootstrap_init
     bootstrap_run_wc
 }
 

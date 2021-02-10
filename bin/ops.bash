@@ -63,8 +63,8 @@ ops_helmfile() {
 
     # TODO: Get rid of this.
     # shellcheck disable=SC1090
-    source "${scripts_path:?Missing scripts path}/post-infra-common.sh" \
-        "${config[infrastructure_file]:?Missing infrastructure file}"
+    # source "${scripts_path:?Missing scripts path}/post-infra-common.sh" \
+        # "${config[infrastructure_file]:?Missing infrastructure file}"
 
     with_kubeconfig "${kubeconfig}" \
         helmfile -f "${here}/../helmfile/" -e ${cluster} "${@}"
