@@ -15,7 +15,7 @@ source "${SCRIPTS_PATH}/../bin/common.bash"
 INTERACTIVE=${1:-""}
 
 echo "Creating Elasticsearch and fluentd secrets" >&2
-elasticsearch_password=$(sops_exec_file "${secrets[secrets_file]}" 'yq r -e {} elasticsearch.fluentdPassword')
+elasticsearch_password=$(pwgen 12 1)
 
 kubectl -n kube-system create secret generic elasticsearch \
     --from-literal=password="${elasticsearch_password}" --dry-run -o yaml | kubectl apply -f -
