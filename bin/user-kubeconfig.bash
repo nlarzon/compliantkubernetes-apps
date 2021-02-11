@@ -21,7 +21,7 @@ get_user_server() {
 log_info "Creating kubeconfig for the user"
 
 cluster_name=$(yq r "${config[config_file_wc]}" 'global.clusterName')
-domain=$(yq r "${config[config_file_wc]}" 'global.opsDomain')
+base_domain=$(yq r "${config[config_file_wc]}" 'global.baseDomain')
 
 # Get server and certificate from the admin kubeconfig
 user_server=$(get_user_server)
@@ -49,7 +49,7 @@ kubectl --kubeconfig="${user_kubeconfig}" config set-credentials "user@${cluster
     --exec-api-version=client.authentication.k8s.io/v1beta1 \
     --exec-arg=oidc-login \
     --exec-arg=get-token \
-    --exec-arg=--oidc-issuer-url="https://dex.${domain}" \
+    --exec-arg=--oidc-issuer-url="https://dex.${base_domain}" \
     --exec-arg=--oidc-client-id=kubelogin \
     --exec-arg=--oidc-client-secret="$(sops -d --extract '["dex"]["kubeloginClientSecret"]' "${secrets[secrets_file]}")" \
     --exec-arg=--oidc-extra-scope=email
