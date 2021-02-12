@@ -1,0 +1,124 @@
+---
+apiVersion: apps/v1
+kind: "DaemonSet"
+metadata:
+  name: "calico-accountant"
+  namespace: "kube-system"
+spec:
+  selector:
+    matchLabels:
+        app: "calico-accountant"
+  template:
+    metadata:
+      labels:
+        app: "calico-accountant"
+    spec:
+      containers:
+        - command:
+           - "/calico-accountant"
+           - "-logtostderr=true"
+           - "-v=2"
+          env:
+          - name: METRICS_SERVER_PORT
+            value: "9009"
+          - name: ETCD_ENDPOINTS
+            valueFrom:
+              configMapKeyRef:
+                name: calico-config
+                key: etcd_endpoints
+          - name: ETCD_CA_CERT_FILE
+            valueFrom:
+              configMapKeyRef:
+                key: etcd_ca
+                name: calico-config
+          - name: ETCD_KEY_FILE
+            valueFrom:
+              configMapKeyRef:
+                key: etcd_key
+                name: calico-config
+          - name: ETCD_CERT_FILE
+            valueFrom:
+              configMapKeyRef:
+                key: etcd_cert
+                name: calico-config
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          image: "elastisys/calico-accountant:v0.1.6"
+          name: "calico-accountant"
+          ports:
+          - containerPort: 9009
+            name: metrics
+          securityContext:
+            privileged: true
+          volumeMounts:
+          - mountPath: /calico-secrets
+            name: etcd-certs
+      hostNetwork: true
+      volumes:
+      - hostPath:
+          path: /etc/calico/certs
+          type: ""
+        name: etcd-certs
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: calico-accountant-privileged
+  namespace: kube-system
+rules:
+- apiGroups:
+  - extensions
+  resourceNames:
+  - privileged
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: calico-accountant-privileged
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: calico-accountant-privileged
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: kube-system
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+      app: "calico-accountant"
+  name: "calico-accountant"
+  namespace: kube-system
+spec:
+  endpoints:
+  - port: metrics
+  selector:
+    matchLabels:
+      app: "calico-accountant"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+      app: "calico-accountant"
+  name: calico-accountant-metrics
+  namespace: kube-system
+spec:
+  ports:
+  - port: 9009
+    name: metrics
+    protocol: TCP
+    targetPort: 9009
+  selector:
+      app: "calico-accountant"
+  sessionAffinity: None
+  type: ClusterIP

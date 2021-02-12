@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: busybox3
+  name: busybox3
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: busybox3
+  template:
+    metadata:
+      labels:
+        app: busybox3
+    spec:
+      containers:
+      - image: busybox
+        name: busybox3
+        command: ['sh', '-c', 'while true; do wget ingress-nginx-defaultbackend.ingress-nginx.svc.cluster.local; sleep 1; done;']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: busybox3-privileged
+  namespace: default
+rules:
+- apiGroups:
+  - extensions
+  resourceNames:
+  - privileged
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: busybox3-privileged
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: busybox3-privileged
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: default
+---
