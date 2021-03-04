@@ -73,6 +73,10 @@ releases:
   version: 2.10.0
   missingFileHandler: Error
   wait: true
+  needs:
+  - elastic-system/opendistro-es
+  - monitoring/user-grafana
+  - dex/dex
   values:
   - values/ingress-nginx.yaml.gotmpl
 
@@ -98,6 +102,7 @@ releases:
   missingFileHandler: Error
   needs:
   - cert-manager/cert-manager
+  wait: true
   values:
 {{ if eq .Environment.Name "service_cluster" }}
   - values/kube-prometheus-stack-sc.yaml.gotmpl
@@ -193,6 +198,8 @@ releases:
   chart: ./charts/prometheus-alerts
   version: 0.1.0
   missingFileHandler: Error
+  needs:
+  - monitoring/kube-prometheus-stack
   values:
 {{ if eq .Environment.Name "service_cluster" }}
   # Note: we want to have alerts for WC since this is wc-reader, even if it is
@@ -209,6 +216,8 @@ releases:
   chart: ./charts/prometheus-alerts
   version: 0.1.0
   missingFileHandler: Error
+  needs:
+  - monitoring/kube-prometheus-stack
   values:
   - values/prometheus-alerts-sc.yaml.gotmpl
 
@@ -237,6 +246,8 @@ releases:
   missingFileHandler: Error
   needs:
   - cert-manager/cert-manager
+  - monitoring/kube-prometheus-stack
+  wait: true
   values:
   - values/grafana-user.yaml.gotmpl
 
@@ -407,6 +418,7 @@ releases:
   missingFileHandler: Error
   needs:
   - cert-manager/cert-manager
+  wait: true
   values:
   - values/opendistro-es.yaml.gotmpl
 
@@ -537,6 +549,8 @@ releases:
   chart: ./charts/prometheus-alerts
   version: 0.1.0
   missingFileHandler: Info
+  needs:
+  - monitoring/kube-prometheus-stack
   values:
   - values/prometheus-alerts-wc.yaml.gotmpl
 
