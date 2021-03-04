@@ -72,7 +72,11 @@ releases:
   chart: ingress-nginx/ingress-nginx
   version: 2.10.0
   missingFileHandler: Error
-  wait: true
+{{ if eq .Environment.Name "service_cluster" }}
+  needs:
+  - monitoring/user-grafana
+  - dex/dex
+{{ end }}
   values:
   - values/ingress-nginx.yaml.gotmpl
 
@@ -98,6 +102,7 @@ releases:
   missingFileHandler: Error
   needs:
   - cert-manager/cert-manager
+  wait: true
   values:
 {{ if eq .Environment.Name "service_cluster" }}
   - values/kube-prometheus-stack-sc.yaml.gotmpl
@@ -184,6 +189,8 @@ releases:
   chart: ./charts/prometheus-alerts
   version: 0.1.0
   missingFileHandler: Error
+  needs:
+  - monitoring/kube-prometheus-stack
   values:
 {{ if eq .Environment.Name "service_cluster" }}
   # Note: we want to have alerts for WC since this is wc-reader, even if it is
@@ -200,6 +207,8 @@ releases:
   chart: ./charts/prometheus-alerts
   version: 0.1.0
   missingFileHandler: Error
+  needs:
+  - monitoring/kube-prometheus-stack
   values:
   - values/prometheus-alerts-sc.yaml.gotmpl
 
@@ -228,6 +237,8 @@ releases:
   missingFileHandler: Error
   needs:
   - cert-manager/cert-manager
+  - monitoring/kube-prometheus-stack
+  wait: true
   values:
   - values/grafana-user.yaml.gotmpl
 
@@ -240,38 +251,36 @@ releases:
   chart: prometheus-community/prometheus-elasticsearch-exporter
   version: 4.0.1
   missingFileHandler: Error
-  needs:
-  - elastic-system/opendistro-es
   values:
   - values/prometheus-elasticsearch-exporter.yaml.gotmpl
 
 # opendistro elasticsearch snapshot lifecycle management
-- name: elasticsearch-slm
-  namespace: elastic-system
-  labels:
-    app: elasticsearch-slm
-  chart: ./charts/elasticsearch-slm
-  version: 0.1.0
-  installed: {{ .Values.elasticsearch.snapshot.enabled }}
-  missingFileHandler: Error
-  needs:
-  - elastic-system/opendistro-es
-  values:
-  - values/elasticsearch-slm.yaml.gotmpl
+# - name: elasticsearch-slm
+#   namespace: elastic-system
+#   labels:
+#     app: elasticsearch-slm
+#   chart: ./charts/elasticsearch-slm
+#   version: 0.1.0
+#   installed: {{ .Values.elasticsearch.snapshot.enabled }}
+#   missingFileHandler: Error
+#   needs:
+#   - elastic-system/opendistro-es
+#   values:
+#   - values/elasticsearch-slm.yaml.gotmpl
 
 # opendistro elasticsearch backup job
-- name: elasticsearch-backup
-  namespace: elastic-system
-  labels:
-    app: elasticsearch-backup
-  chart: ./charts/elasticsearch-backup
-  version: 0.1.0
-  installed: {{ .Values.elasticsearch.snapshot.enabled }}
-  missingFileHandler: Error
-  needs:
-  - elastic-system/opendistro-es
-  values:
-  - values/elasticsearch-backup.yaml.gotmpl
+# - name: elasticsearch-backup
+#   namespace: elastic-system
+#   labels:
+#     app: elasticsearch-backup
+#   chart: ./charts/elasticsearch-backup
+#   version: 0.1.0
+#   installed: {{ .Values.elasticsearch.snapshot.enabled }}
+#   missingFileHandler: Error
+#   needs:
+#   - elastic-system/opendistro-es
+#   values:
+#   - values/elasticsearch-backup.yaml.gotmpl
 
 # Harbor
 - name: harbor-certs
@@ -398,6 +407,7 @@ releases:
   missingFileHandler: Error
   needs:
   - cert-manager/cert-manager
+  - cert-manager/issuers
   values:
   - values/opendistro-es.yaml.gotmpl
 
@@ -528,6 +538,8 @@ releases:
   chart: ./charts/prometheus-alerts
   version: 0.1.0
   missingFileHandler: Info
+  needs:
+  - monitoring/kube-prometheus-stack
   values:
   - values/prometheus-alerts-wc.yaml.gotmpl
 
