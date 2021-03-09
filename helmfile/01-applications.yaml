@@ -72,9 +72,11 @@ releases:
   chart: ingress-nginx/ingress-nginx
   version: 2.10.0
   missingFileHandler: Error
+{{ if eq .Environment.Name "service_cluster" }}
   needs:
   - monitoring/user-grafana
   - dex/dex
+{{ end }}
   values:
   - values/ingress-nginx.yaml.gotmpl
 
