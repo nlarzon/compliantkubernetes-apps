@@ -72,9 +72,7 @@ releases:
   chart: ingress-nginx/ingress-nginx
   version: 2.10.0
   missingFileHandler: Error
-  wait: true
   needs:
-  - elastic-system/opendistro-es
   - monitoring/user-grafana
   - dex/dex
   values:
@@ -260,38 +258,36 @@ releases:
   chart: prometheus-community/prometheus-elasticsearch-exporter
   version: 4.0.1
   missingFileHandler: Error
-  needs:
-  - elastic-system/opendistro-es
   values:
   - values/prometheus-elasticsearch-exporter.yaml.gotmpl
 
 # opendistro elasticsearch snapshot lifecycle management
-- name: elasticsearch-slm
-  namespace: elastic-system
-  labels:
-    app: elasticsearch-slm
-  chart: ./charts/elasticsearch-slm
-  version: 0.1.0
-  installed: {{ .Values.elasticsearch.snapshot.enabled }}
-  missingFileHandler: Error
-  needs:
-  - elastic-system/opendistro-es
-  values:
-  - values/elasticsearch-slm.yaml.gotmpl
+# - name: elasticsearch-slm
+#   namespace: elastic-system
+#   labels:
+#     app: elasticsearch-slm
+#   chart: ./charts/elasticsearch-slm
+#   version: 0.1.0
+#   installed: {{ .Values.elasticsearch.snapshot.enabled }}
+#   missingFileHandler: Error
+#   needs:
+#   - elastic-system/opendistro-es
+#   values:
+#   - values/elasticsearch-slm.yaml.gotmpl
 
 # opendistro elasticsearch backup job
-- name: elasticsearch-backup
-  namespace: elastic-system
-  labels:
-    app: elasticsearch-backup
-  chart: ./charts/elasticsearch-backup
-  version: 0.1.0
-  installed: {{ .Values.elasticsearch.snapshot.enabled }}
-  missingFileHandler: Error
-  needs:
-  - elastic-system/opendistro-es
-  values:
-  - values/elasticsearch-backup.yaml.gotmpl
+# - name: elasticsearch-backup
+#   namespace: elastic-system
+#   labels:
+#     app: elasticsearch-backup
+#   chart: ./charts/elasticsearch-backup
+#   version: 0.1.0
+#   installed: {{ .Values.elasticsearch.snapshot.enabled }}
+#   missingFileHandler: Error
+#   needs:
+#   - elastic-system/opendistro-es
+#   values:
+#   - values/elasticsearch-backup.yaml.gotmpl
 
 # Harbor
 - name: harbor-certs
@@ -418,7 +414,7 @@ releases:
   missingFileHandler: Error
   needs:
   - cert-manager/cert-manager
-  wait: true
+  - cert-manager/issuers
   values:
   - values/opendistro-es.yaml.gotmpl
 
