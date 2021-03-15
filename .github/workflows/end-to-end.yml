@@ -12,7 +12,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: elastisys/compliantkubernetes-apps
-        ref: main
+        ref: ol/add-s3-pipeline
     - name: Build docker image
       uses: whoan/docker-build-with-cache-action@v3
       with:
@@ -115,6 +115,7 @@ jobs:
         PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
 
     - name: Create buckets
+      if: matrix.cluster == 'sc'
       env:
         EXOSCALE_API_KEY: ${{ secrets.EXOSCALE_API_KEY }}
         EXOSCALE_API_SECRET: ${{ secrets.EXOSCALE_API_SECRET }}
@@ -209,6 +210,7 @@ jobs:
         args: route53 change-resource-record-sets --hosted-zone-id Z2STJRQSJO5PZ0 --change-batch file://apps/pipeline/config/exoscale/dns-${{ matrix.cluster }}.json
 
     - name: Delete buckets
+      if: matrix.cluster == 'sc'
       env:
         EXOSCALE_API_KEY: ${{ secrets.EXOSCALE_API_KEY }}
         EXOSCALE_API_SECRET: ${{ secrets.EXOSCALE_API_SECRET }}
