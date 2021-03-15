@@ -23,7 +23,7 @@ jobs:
         context: pipeline
 
   apps:
-    needs: [build-apps-image, buckets]
+    needs: [build-apps-image]
     runs-on: ubuntu-20.04
     container: elastisys/compliantkubernetes-apps-pipeline:${{ github.sha }}
     strategy:
@@ -235,7 +235,7 @@ jobs:
 
   alert:
     runs-on: ubuntu-20.04
-    needs: [buckets-cleanup, clean-apps-image]
+    needs: [clean-apps-image]
     if: always() && github.ref == 'refs/heads/main'  # Make sure this runs even if some jobs fail, and only on main
     steps:
     - id: get-sha
