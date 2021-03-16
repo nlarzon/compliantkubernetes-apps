@@ -37,7 +37,7 @@ function usage() {
 
 if [ "$1" = "--s3cfg" ]; then
     [ "$#" -ne 3 ] && echo "Invalid number of arguments" 1>&2 && usage
-    "${here}/manager.sh" --config "$2" --"$3" "$buckets"
+    "${here}/manager.sh" --s3cfg "$2" --"$3" "$buckets"
 else
     [ "$#" -ne 1 ] && echo "Invalid number of arguments" 1>&2 && usage
     "${here}/manager.sh" --"$1" "$buckets"

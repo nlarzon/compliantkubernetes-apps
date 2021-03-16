@@ -120,8 +120,8 @@ jobs:
         EXOSCALE_API_KEY: ${{ secrets.EXOSCALE_API_KEY }}
         EXOSCALE_API_SECRET: ${{ secrets.EXOSCALE_API_SECRET }}
       run: |
-        ./apps/scripts/S3/generate-s3cfg.sh exoscale "${EXOSCALE_API_KEY}" "${EXOSCALE_API_SECRET}" sos-ch-gva-2.exo.io ch-gva-2 > $(pwd)/s3cfg.ini
-        ./apps/scripts/S3/entry.sh --s3cfg $(pwd)/s3cfg.ini create
+        ./apps/scripts/S3/generate-s3cfg.sh exoscale "${EXOSCALE_API_KEY}" "${EXOSCALE_API_SECRET}" sos-ch-gva-2.exo.io ch-gva-2 > s3cfg.ini
+        ./apps/scripts/S3/entry.sh --s3cfg s3cfg.ini create
 
     - name: Prepare for apps
       env:
@@ -215,8 +215,8 @@ jobs:
         EXOSCALE_API_KEY: ${{ secrets.EXOSCALE_API_KEY }}
         EXOSCALE_API_SECRET: ${{ secrets.EXOSCALE_API_SECRET }}
       run: |
-        ./apps/scripts/S3/generate-s3cfg.sh exoscale "${EXOSCALE_API_KEY}" "${EXOSCALE_API_SECRET}" sos-ch-gva-2.exo.io ch-gva-2 > $(pwd)/s3cfg.ini
-        ./apps/scripts/S3/entry.sh --s3cfg $(pwd)/s3cfg.ini delete
+        ./apps/scripts/S3/generate-s3cfg.sh exoscale "${EXOSCALE_API_KEY}" "${EXOSCALE_API_SECRET}" sos-ch-gva-2.exo.io ch-gva-2 > s3cfg.ini
+        ./apps/scripts/S3/entry.sh --s3cfg s3cfg.ini delete
 
   clean-apps-image:
     needs: apps
