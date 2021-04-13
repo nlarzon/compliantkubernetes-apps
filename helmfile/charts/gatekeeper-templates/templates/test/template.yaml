@@ -1,0 +1,16 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: testpolicy
+spec:
+  crd:
+    spec:
+      names:
+        kind: TestPolicy
+        listKind: TestPolicyList
+        plural: testPolicy
+        singular: testPolicy
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+{{ .Files.Get "policies/test.rego"  | indent 8 }}
