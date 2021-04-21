@@ -14,19 +14,36 @@ function usage() {
 cat <<EOF
 access_key = $2
 secret_key = $3
-host_base = $4
-bucket_location = $5
 EOF
-# Providers that support virtual-hosted-style access to buckets.
-if [ "$1" = "aws" ] || [ "$1" = "exoscale" ]; then
+if [ "$1" = "aws" ]; then
 cat <<EOF
+bucket_location = something
+EOF
+fi
+if [ "$1" = "exoscale" ]; then
+cat <<EOF
+host_base = $4
 host_bucket = %(bucket)s.$4
 EOF
-# Providers that only support path-style access to buckets.
 elif [ "$1" = "safespring" ] || [ "$1" = "citycloud" ]; then
 cat <<EOF
+host_base = $4
 host_bucket = $4
 EOF
-else
-echo "Unsupported S3 provider '$1'" && usage
 fi
+
+# host_base = $4
+# bucket_location = $5
+# # Providers that support virtual-hosted-style access to buckets.
+# if [ "$1" = "aws" ] || [ "$1" = "exoscale" ]; then
+# cat <<EOF
+# host_bucket = %(bucket)s.$4
+# EOF
+# # Providers that only support path-style access to buckets.
+# elif [ "$1" = "safespring" ] || [ "$1" = "citycloud" ]; then
+# cat <<EOF
+# host_bucket = $4
+# EOF
+# else
+# echo "Unsupported S3 provider '$1'" && usage
+# fi
