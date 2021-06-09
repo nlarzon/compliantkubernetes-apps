@@ -47,6 +47,11 @@ config:
       {{- range $uri := .Values.dex.additionalKubeloginRedirects }}
       - {{ $uri }}
       {{- end }}
+    - id: dex-secret-argocd-cli
+      public: true
+      name: dex-argocd
+      redirectURIs:
+      - "http://localhost:8085/auth/callback"
     - id: grafana
       secret: {{ .Values.grafana.clientSecret }}
       name: 'Grafana'
