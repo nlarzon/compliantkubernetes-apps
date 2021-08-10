@@ -84,6 +84,18 @@ releases:
   values:
   - values/metrics-server.yaml.gotmpl
 
+# kube-bench-metrics
+- name: kube-bench-metrics
+  namespace: monitoring
+  labels:
+    app: kube-bench-metrics
+  chart: ./elastisys/kube-bench-metrics
+  version: 0.1.0
+  installed: {{ .Values.kubeBenchMetrics.enabled }}
+  missingFileHandler: Error
+  values:
+  - values/kube-bench-metrics.yaml.gotmpl
+
 # calico-accountant
 - name: calico-accountant
   namespace: kube-system

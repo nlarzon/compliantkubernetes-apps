@@ -62,3 +62,7 @@ data:
   ceph-pools_rev5.json: |-
     {{- .Files.Get "dashboards/ceph-pools_rev5.json" | nindent 4 }}
 {{- end }}
+{{- if .Values.dashboards.kubeBenchMetrics.enabled }}
+  kube-bench-metrics.json: |-
+    {{- .Files.Get "dashboards/kube-bench-metrics.json" | nindent 4 }}
+{{- end }}

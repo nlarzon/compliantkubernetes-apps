@@ -164,6 +164,12 @@ harbor:
     scope: openid,email,profile,offline_access,groups
   backup:
     enabled: true
+kubeBenchMetrics:
+  enabled: true
+  resources:
+    requests:
+      cpu: 1m
+      memory: 20Mi
 
 prometheus:
   storage:
