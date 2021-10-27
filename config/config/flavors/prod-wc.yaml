@@ -14,3 +14,13 @@ prometheus:
   retention:
     size: 12GiB
     age:  3d
+
+opa:
+  imageRegistry:
+    enforcement: deny
+
+  networkPolicies:
+    enforcement: deny
+
+  resourceRequests:
+    enforcement: deny
