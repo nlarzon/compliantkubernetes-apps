@@ -2,6 +2,9 @@
 
 ## Steps
 
+1. Run the migration script `remove_deleted_rules_prometheus_alerts.sh` to remove the old Prometheus rules and alerts from both clusters
+> **_WARNING:_** this will "hide" all the alerts until you run the `bin/ck8s apply` and recreate the rules and alerts
+
 1. Run migration script: `copy-environment-variables.sh`
 
     This will copy over the variables set for the environment regarding cloud provider, environment name, and flavor to the new location: the common default config.

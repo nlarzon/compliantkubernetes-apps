@@ -10,7 +10,7 @@ prometheusNamespace: monitoring
 
 defaultRules:
   labels:
-    cluster: workload
+    workload_cluster: "1"
   rules:
     elasticsearch: false
     alertmanager: {{ .Values.user.alertmanager.enabled }}
