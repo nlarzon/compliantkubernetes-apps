@@ -23,6 +23,8 @@
 
 1. Rename parameter `fluentd.forwarder.chunkLimitSizeBytes` to `fluentd.forwarder.chunkLimitSize` in `sc-config.yaml`
 
+1. Run the migration script: `upgrade_prometheus_operator.sh`
+
 1. Upgrade applications:
 
     ```bash

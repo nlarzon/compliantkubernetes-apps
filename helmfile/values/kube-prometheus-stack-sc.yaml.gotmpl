@@ -203,7 +203,9 @@ grafana:
     dashboards:
       enabled: true
       label: grafana_dashboard
-      multicluster: true
+      multicluster:
+        global:
+          enabled: true
     datasources:
       enabled: true
       defaultDatasourceEnabled: false
