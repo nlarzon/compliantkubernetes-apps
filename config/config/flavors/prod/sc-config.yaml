@@ -17,7 +17,7 @@ prometheus:
       size: 12GiB
       age: 7d
 
-elasticsearch:
+opensearch:
   sso:
     enabled: true
   masterNode:
@@ -47,20 +47,19 @@ elasticsearch:
     rolloverSizeGB: 5
     rolloverAgeDays: 1
   curator:
+    retention:
+      authLogSizeGB: 5
+      otherSizeGB: 5
+      otherAgeDays: 30
     resources:
       requests:
         cpu: 10m
         memory: 32Mi
-    retention:
-      otherSizeGB: 5
-      otherAgeDays: 30
-      authLogSizeGB: 5
   snapshot:
     min: 300 # 12 / day * 30 days = 360, subtract some to account for failures
     max: 500
     ageSeconds: 2592000 # 30 days
-    backupSchedule: 30 */2 * * * # 30 min past every 2nd hour
-                                 # To avoid collision with retention
+    backupSchedule: 30 */2 * * * # 30 min past every 2nd hour to avoid collision with retention
 
 harbor:
   database:

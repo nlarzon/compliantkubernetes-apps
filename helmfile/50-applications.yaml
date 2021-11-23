@@ -234,28 +234,15 @@ releases:
   values:
   - values/grafana-user.yaml.gotmpl
 
-
-# prometheus-elasticsearch-exporter
-- name: prometheus-elasticsearch-exporter
-  namespace: elastic-system
-  labels:
-    app: prometheus-elasticsearch-exporter
-  chart: ./upstream/prometheus-elasticsearch-exporter
-  version: 4.0.1
-  missingFileHandler: Error
-  needs:
-  - elastic-system/opendistro-es
-  values:
-  - values/prometheus-elasticsearch-exporter.yaml.gotmpl
-
 # opendistro elasticsearch snapshot lifecycle management
 - name: elasticsearch-slm
   namespace: elastic-system
   labels:
     app: elasticsearch-slm
+    group: opendistro
   chart: ./charts/elasticsearch-slm
   version: 0.1.0
-  installed: {{ .Values.elasticsearch.snapshot.enabled }}
+  installed: false
   missingFileHandler: Error
   needs:
   - elastic-system/opendistro-es
@@ -267,14 +254,125 @@ releases:
   namespace: elastic-system
   labels:
     app: elasticsearch-backup
+    group: opendistro
   chart: ./charts/elasticsearch-backup
   version: 0.1.0
-  installed: {{ .Values.elasticsearch.snapshot.enabled }}
+  installed: false
   missingFileHandler: Error
   needs:
   - elastic-system/opendistro-es
   values:
   - values/elasticsearch-backup.yaml.gotmpl
+
+# OpenSearch
+- name: opensearch-secrets
+  namespace: elastic-system
+  labels:
+    app: opensearch-secrets
+    group: opensearch
+  chart: ./charts/opensearch/secrets
+  version: 0.1.0
+  installed: true
+  values:
+  - values/opensearch/secrets.yaml.gotmpl
+
+- name: opensearch
+  namespace: elastic-system
+  labels:
+    app: opensearch
+    group: opensearch
+  chart: ./upstream/opensearch
+  version: 1.4.3
+  installed: true
+  needs:
+  {{- if .Values.opensearch.sso.enabled }}
+  - dex/dex
+  {{- end }}
+  - elastic-system/opensearch-secrets
+  values:
+  - values/opensearch/main.yaml.gotmpl
+
+- name: opensearch-dashboards
+  namespace: elastic-system
+  labels:
+    app: opensearch-dashboards
+    group: opensearch
+  chart: ./upstream/opensearch-dashboards
+  version: 1.0.8
+  installed: true
+  needs:
+  - elastic-system/opensearch
+  values:
+  - values/opensearch/dashboards.yaml.gotmpl
+
+- name: opensearch-backup
+  namespace: elastic-system
+  labels:
+    app: opensearch-backup
+    group: opensearch
+  chart: ./charts/opensearch/backup
+  version: 0.1.0
+  installed: {{ .Values.opensearch.snapshot.enabled }}
+  missingFileHandler: Error
+  needs:
+  - elastic-system/opensearch
+  values:
+  - values/opensearch/backup.yaml.gotmpl
+
+- name: opensearch-slm
+  namespace: elastic-system
+  labels:
+    app: opensearch-slm
+    group: opensearch
+  chart: ./charts/opensearch/slm
+  version: 0.1.0
+  installed: {{ .Values.opensearch.snapshot.enabled }}
+  missingFileHandler: Error
+  needs:
+  - elastic-system/opensearch
+  values:
+  - values/opensearch/slm.yaml.gotmpl
+
+- name: opensearch-curator
+  namespace: elastic-system
+  labels:
+    app: opensearch-curator
+    group: opensearch
+  chart: ./charts/opensearch/curator
+  version: 0.1.0
+  installed: {{ .Values.opensearch.curator.enabled }}
+  missingFileHandler: Error
+  needs:
+  - elastic-system/opensearch
+  values:
+  - values/opensearch/curator.yaml.gotmpl
+
+- name: opensearch-configurer
+  namespace: elastic-system
+  labels:
+    app: opensearch-configurer
+    group: opensearch
+  chart: ./charts/opensearch/configurer
+  version: 0.1.0
+  installed: true
+  needs:
+  - elastic-system/opensearch
+  - elastic-system/opensearch-dashboards
+  values:
+  - values/opensearch/configurer.yaml.gotmpl
+
+# prometheus-elasticsearch-exporter
+- name: prometheus-elasticsearch-exporter
+  namespace: elastic-system
+  labels:
+    app: prometheus-elasticsearch-exporter
+  chart: ./upstream/prometheus-elasticsearch-exporter
+  version: 4.0.1
+  missingFileHandler: Error
+  needs:
+  - elastic-system/opensearch
+  values:
+  - values/prometheus-elasticsearch-exporter.yaml.gotmpl
 
 # Harbor
 - name: harbor-certs
@@ -403,8 +501,10 @@ releases:
   namespace: elastic-system
   labels:
     app: opendistro
+    group: opendistro
   chart: ./elastisys/opendistro-es
   version: 1.12.1
+  installed: false
   missingFileHandler: Error
   needs:
   - dex/dex

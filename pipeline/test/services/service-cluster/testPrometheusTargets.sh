@@ -24,7 +24,7 @@ scTargets=(
     "serviceMonitor/monitoring/blackbox-exporter-user-api-server/0 1"
     "serviceMonitor/monitoring/blackbox-exporter-dex/0 1"
     "serviceMonitor/monitoring/blackbox-exporter-grafana/0 1"
-    "serviceMonitor/monitoring/blackbox-exporter-kibana/0 1"
+    "serviceMonitor/monitoring/blackbox-exporter-opensearch-dashboards/0 1"
     "serviceMonitor/monitoring/influxdb-du-monitoring-service-monitor/0 1"
     "serviceMonitor/monitoring/kube-prometheus-stack-alertmanager/0 1"
     "serviceMonitor/monitoring/kube-prometheus-stack-apiserver/0 ${masterNodes}"

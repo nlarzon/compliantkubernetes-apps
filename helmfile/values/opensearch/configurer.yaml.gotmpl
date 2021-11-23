@@ -1,0 +1,144 @@
+opensearch:
+  accountSecret: opensearch-configurer-user
+  clusterEndpoint: {{ .Values.opensearch.clusterName }}-master:9200
+  dashboardsEndpoint: opensearch-dashboards:5601
+
+activeDeadlineSeconds: 1200
+
+resources:
+  limits:
+   cpu: 100m
+   memory: 128Mi
+  requests:
+   cpu: 10m
+   memory: 32Mi
+
+helm:
+  deletePolicy: before-hook-creation
+
+config:
+  createIndices: {{ .Values.opensearch.createIndices }}
+
+  overwriteTemplates: {{ .Values.opensearch.overwriteTemplates }}
+  defaultTemplates: {{ .Values.opensearch.defaultTemplates }}
+  additionalTemplates: {{- toYaml .Values.opensearch.additionalTemplates | nindent 4 }}
+
+  updatePolicies: {{ .Values.opensearch.ism.overwritePolicies }}
+  defaultPolicies: {{ .Values.opensearch.ism.defaultPolicies }}
+  additionalPolicies: {{- toYaml .Values.opensearch.ism.additionalPolicies | nindent 4 }}
+
+  ism:
+    rolloverSize: {{ .Values.opensearch.ism.rolloverSizeGB }}
+    rolloverAge: {{ .Values.opensearch.ism.rolloverAgeDays }}
+
+  snapshotRepository: {{ .Values.opensearch.snapshot.repository }}
+
+  {{ if eq .Values.objectStorage.type "s3" -}}
+  s3:
+    enabled: true
+    bucketName: {{ .Values.objectStorage.buckets.opensearch }}
+  {{ else if eq .Values.objectStorage.type "gcs" -}}
+  gcs:
+    enabled: true
+    bucketName: {{ .Values.objectStorage.buckets.opensearch }}
+    # useExistingSecret: false
+    # secretName: opensearch-gcs-credentials
+    # keyfileData: |
+    #  {{ .Values.objectStorage.gcs.keyfileData | nindent 6 }}
+  {{- end }}
+
+  # Create users and roles for ck8s application
+  securityPlugin:
+    users:
+    - username: fluentd
+      definition:
+        password: {{ .Values.opensearch.fluentdPassword }}
+        opendistro_security_roles:
+        - log_forwarder
+    - username: curator
+      definition:
+        password: {{ .Values.opensearch.curatorPassword }}
+        opendistro_security_roles:
+        - curator
+    - username: snapshotter
+      definition:
+        password: {{ .Values.opensearch.snapshotterPassword }}
+        opendistro_security_roles:
+        - manage_snapshots
+    - username: metrics_exporter
+      definition:
+        password: {{ .Values.opensearch.metricsExporterPassword }}
+        opendistro_security_roles:
+        - metrics_exporter
+
+    roles:
+    - role_name: log_forwarder
+      definition:
+        cluster_permissions:
+        - "cluster:monitor/main"
+        - "indices:data/write/bulk"
+        index_permissions:
+        - index_patterns:
+          - "kubernetes-*"
+          - "kubeaudit-*"
+          - "other-*"
+          - "authlog-*"
+          allowed_actions:
+          - "index"
+    - role_name: curator
+      definition:
+        cluster_permissions:
+        - "cluster_monitor"
+        - "cluster_composite_ops_ro"
+        index_permissions:
+        - index_patterns:
+          - "*"
+          allowed_actions:
+          - "indices_monitor"
+        - index_patterns:
+          - "kubernetes-*"
+          - "other-*"
+          - "kubeaudit-*"
+          - "authlog-*"
+          allowed_actions:
+          - "indices:admin/delete"
+    - role_name: kubernetes_log_reader
+      definition:
+        index_permissions:
+        - index_patterns:
+          - "kubernetes-*"
+          - "kubeaudit-*"
+          allowed_actions:
+          - "read"
+    - role_name: backup_exporter
+      definition:
+        cluster_permissions:
+        - "cluster:monitor/state"
+        - "cluster:monitor/health"
+        index_permissions:
+        - index_patterns:
+          - "*"
+          allowed_actions:
+          - "monitor"
+        - index_patterns:
+          - "kubernetes-*"
+          - "kubeaudit-*"
+          allowed_actions:
+          - "read"
+    - role_name: metrics_exporter
+      definition:
+        cluster_permissions:
+        - "cluster_monitor"
+        - "cluster:admin/repository/get"
+        - "cluster:admin/snapshot/get"
+        index_permissions:
+        - index_patterns:
+          - "*"
+          allowed_actions:
+          - "indices:monitor/stats"
+          - "indices:monitor/settings/get"
+    {{- with .Values.opensearch.extraRoles }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+
+    roles_mapping: {{- toYaml .Values.opensearch.extraRoleMappings | nindent 6 }}

@@ -1,0 +1,24 @@
+opensearch:
+  accountSecret: opensearch-curator-user
+  clusterEndpoint: {{ .Values.opensearch.clusterName }}-master:9200
+
+startingDeadlineSeconds: 600
+
+affinity:     {{- toYaml .Values.opensearch.curator.affinity | nindent 2 }}
+tolerations:  {{- toYaml .Values.opensearch.curator.tolerations | nindent 2 }}
+nodeSelector: {{- toYaml .Values.opensearch.curator.nodeSelector | nindent 2 }}
+resources:    {{- toYaml .Values.opensearch.curator.resources | nindent 2 }}
+
+postgresql: {{ .Values | get "opensearch.curator.retention.postgresql" false }}
+
+retention:
+  authlog_gb: {{ .Values.opensearch.curator.retention.authLogSizeGB }}
+  authlog_days: {{ .Values.opensearch.curator.retention.authLogAgeDays }}
+  other_gb: {{ .Values.opensearch.curator.retention.otherSizeGB }}
+  other_days: {{ .Values.opensearch.curator.retention.otherAgeDays }}
+  kubernetes_gb: {{ .Values.opensearch.curator.retention.kubernetesSizeGB }}
+  kubernetes_days: {{ .Values.opensearch.curator.retention.kubernetesAgeDays }}
+  kubeaudit_gb: {{ .Values.opensearch.curator.retention.kubeAuditSizeGB }}
+  kubeaudit_days: {{ .Values.opensearch.curator.retention.kubeAuditAgeDays }}
+  postgresql_gb: {{ .Values | get "opensearch.curator.retention.postgresqlSizeGB" nil }}
+  postgresql_days: {{ .Values | get "opensearch.curator.retention.postgresqlAgeDays" nil }}

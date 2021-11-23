@@ -10,7 +10,7 @@ elasticsearch:
     enabled: true
     user: fluentd
     password: null
-  hosts: ["{{ .Values.elasticsearch.subdomain }}.{{ .Values.global.opsDomain  }}"]
+  hosts: ["{{ .Values.opensearch.subdomain }}.{{ .Values.global.opsDomain  }}"]
   sslVerify: {{ .Values.global.verifyTls }}
   logLevel: "info"
   reloadOnFailure: true
@@ -18,7 +18,7 @@ elasticsearch:
 
 secret:
 - name: OUTPUT_PASSWORD
-  secret_name: elasticsearch
+  secret_name: opensearch
   secret_key: password
 
 podSecurityPolicy:
@@ -35,12 +35,6 @@ serviceMonitor:
 
 prometheusRule:
   enabled: true
-
-service:
-  ports:
-  - name: metrics
-    type: ClusterIP
-    port: 24231
 
 # Default args include "-q" which sets loglevel to warning.
 fluentdArgs: "--no-supervisor -q"
@@ -99,7 +93,6 @@ extraConfigMaps:
       tag kubeaudit.*
       read_from_head true
       skip_refresh_on_startup true
-      enable_watch_timer false
       <parse>
         @type multi_format
         <pattern>
@@ -125,7 +118,6 @@ extraConfigMaps:
       pos_file_compaction_interval 72h
       tag authlog.*
       skip_refresh_on_startup true
-      enable_watch_timer false
       <parse>
         @type regexp
         expression /^(?<time>[^ ]* {1,2}[^ ]* [^ ]*) (?<host>[^ ]*) (?<ident>[a-zA-Z0-9_\/\.\-]*)(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*)$/
@@ -145,7 +137,6 @@ extraConfigMaps:
       tag raw.kubernetes.*
       read_from_head true
       skip_refresh_on_startup true
-      enable_watch_timer false
       <parse>
         @type multi_format
         <pattern>
@@ -176,7 +167,7 @@ extraConfigMaps:
     <filter **>
       @id filter_concat
       @type concat
-      key message
+      key log
       multiline_end_regexp /\n$/
       separator ""
     </filter>

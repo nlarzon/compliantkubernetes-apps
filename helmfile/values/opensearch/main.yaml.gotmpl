@@ -1,0 +1,273 @@
+clusterName: {{ .Values.opensearch.clusterName }}
+nodeGroup: master
+
+masterService: {{ .Values.opensearch.clusterName }}-master
+
+roles:
+  - master
+  - ingest
+  - data
+  - remote_cluster_client
+
+replicas: {{ .Values.opensearch.masterNode.count }}
+
+config:
+  opensearch.yml: |
+    cluster:
+      name: {{ .Values.opensearch.clusterName }}
+
+    network:
+      host: 0.0.0.0
+
+    compatibility:
+      override_main_response_version: true
+
+    # Security plugin configuration
+    plugins:
+      security:
+        ssl:
+          transport:
+            pemcert_filepath: transport/tls.crt
+            pemkey_filepath: transport/tls.key
+            pemtrustedcas_filepath: transport/ca.crt
+            enforce_hostname_verification: false
+          http:
+            enabled: false
+        allow_unsafe_democertificates: true
+        allow_default_init_securityindex: true
+        authcz:
+          admin_dn:
+            - "CN=admin.elastic-system.cluster.local,O=compliantkubernetes"
+        audit:
+          type: internal_opensearch
+          # In example config, but not supported
+          # ignore_users:
+          #   - kibanaserver
+        enable_snapshot_restore_privilege: true
+        check_snapshot_restore_write_privileges: true
+        nodes_dn:
+          - "CN=nodes.elastic-system.cluster.local,O=compliantkubernetes"
+        restapi:
+          roles_enabled:
+            - all_access
+            - configurer
+            - security_rest_api_access
+        system_indices:
+          enabled: true
+          indices:
+            [
+              ".opendistro-alerting-config",
+              ".opendistro-alerting-alert*",
+              ".opendistro-anomaly-results*",
+              ".opendistro-anomaly-detector*",
+              ".opendistro-anomaly-checkpoints",
+              ".opendistro-anomaly-detection-state",
+              ".opendistro-reports-*",
+              ".opendistro-notifications-*",
+              ".opendistro-notebooks",
+              ".opendistro-asynchronous-search-response*",
+            ]
+
+    # Object storage configuration
+    {{ if eq .Values.objectStorage.type "s3" -}}
+    s3:
+      client:
+        default:
+          endpoint: {{ .Values.objectStorage.s3.regionEndpoint }}
+          path_style_access: true
+    {{ else if eq .Values.objectStorage.type "gcs" -}}
+    # TODO: Add config for GCS if any.
+    {{- end }}
+
+secretMounts:
+  - secretName: opensearch-admin-cert
+    name: opensearch-admin-cert
+    path: /usr/share/opensearch/config/admin
+    defaultMode: 0400
+  - secretName: opensearch-transport-cert
+    name: opensearch-transport-cert
+    path: /usr/share/opensearch/config/transport
+    defaultMode: 0400
+
+opensearchJavaOpts: {{ .Values.opensearch.masterNode.javaOpts }}
+
+resources: {{- toYaml .Values.opensearch.masterNode.resources | nindent 2 }}
+
+rbac:
+  create: true
+
+# TODO: Shave, currently created with `privileged: true`..., which we might need for sysctl...
+podSecurityPolicy:
+  create: true
+
+persistence:
+  size: {{ .Values.opensearch.masterNode.storageSize }}
+  storageClass: {{ toYaml .Values.opensearch.masterNode.storageClass }}
+
+{{ if (hasKey .Values.opensearch.masterNode.affinity.podAntiAffinity "requiredDuringSchedulingIgnoredDuringExecution") -}}
+antiAffinityTopologyKey: {{ (first .Values.opensearch.masterNode.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution).podAffinityTerm.topologyKey | quote }}
+antiAffinity: hard
+{{ else if (hasKey .Values.opensearch.masterNode.affinity.podAntiAffinity "preferredDuringSchedulingIgnoredDuringExecution") -}}
+antiAffinityTopologyKey: {{ (first .Values.opensearch.masterNode.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution).podAffinityTerm.topologyKey | quote }}
+antiAffinity: soft
+{{ end -}}
+
+{{ if (hasKey .Values.opensearch.masterNode.affinity "nodeAffinity") -}}
+nodeAffinity: {{ toYaml .Values.opensearch.masterNode.affinity.nodeAffinity | nindent 2 }}
+{{ end -}}
+
+securityConfig:
+  config:
+    data:
+      config.yml: |-
+        _meta:
+          type: "config"
+          config_version: 2
+
+        config:
+          dynamic:
+            authc:
+              basic_internal_auth_domain:
+                description: "Authenticate via HTTP Basic against internal users database"
+                http_enabled: true
+                transport_enabled: true
+                order: 0
+                http_authenticator:
+                  type: basic
+                  challenge: false
+                authentication_backend:
+                  type: internal
+              {{ if .Values.opensearch.sso.enabled }}
+              openid_auth_domain:
+                description: "OpenID Connect"
+                http_enabled: true
+                transport_enabled: true
+                order: 1
+                http_authenticator:
+                  type: openid
+                  challenge: false
+                  config:
+                    openid_connect_url: http://dex.dex.svc.cluster.local:5556/.well-known/openid-configuration
+                    openid_connect_idp:
+                      enable_ssl: false
+                      verify_hostnames: false
+                    subject_key: {{ .Values.opensearch.sso.subject_key }}
+                    roles_key: {{ .Values.opensearch.sso.roles_key }}
+                authentication_backend:
+                  type: noop
+              {{ end }}
+
+      internal_users.yml: |-
+        _meta:
+          type: "internalusers"
+          config_version: 2
+
+        admin:
+          hash: {{ .Values.opensearch.adminHash }}
+          reserved: true
+          opendistro_security_roles:
+          - "all_access"
+          - "manage_snapshots"
+          description: "Admin user"
+
+        kibanaserver:
+          hash: {{ .Values.opensearch.dashboardsHash }}
+          reserved: true
+          opendistro_security_roles:
+          - "kibana_server"
+          description: "OpenSearch Dashboards user"
+
+        configurer:
+          hash: {{ .Values.opensearch.configurerHash }}
+          reserved: true
+          opendistro_security_roles:
+          - "kibana_user"
+          - "configurer"
+          description: "Configurer user"
+
+      roles.yml: |-
+        _meta:
+          type: "roles"
+          config_version: 2
+
+        # Can probably be locked down further
+        configurer:
+          static: false
+          hidden: false
+          reserved: false
+          cluster_permissions:
+          - "cluster:admin/repository/put"
+          - "cluster_manage_index_templates"
+          - "cluster:admin/opendistro/ism/policy/*"
+          index_permissions:
+          - index_patterns:
+            - "*"
+            allowed_actions:
+            - "create_index"
+            - "crud"
+            - "manage_aliases"
+            - "indices:admin/index_template/*"
+            - "indices:admin/opensearch/ism/managedindex"
+            - "indices:admin/rollover"
+            - "indices:monitor/stats"
+
+      # Needed
+      roles_mapping.yml: |-
+        _meta:
+          type: "rolesmapping"
+          config_version: 2
+
+      # Needed
+      tenants.yml: |-
+        _meta:
+          type: "tenants"
+          config_version: 2
+
+      # Needed
+      action_groups.yml: |-
+        _meta:
+          type: "actiongroups"
+          config_version: 2
+
+      # Optional
+      nodes_dn.yml: |-
+        _meta:
+          type: "nodesdn"
+          config_version: 2
+
+      # Optional
+      whitelist.yml: |-
+        _meta:
+          type: "whitelist"
+          config_version: 2
+        config:
+          enabled: false
+
+nodeSelector: {{- toYaml .Values.opensearch.masterNode.nodeSelector | nindent 2 }}
+
+tolerations:  {{- toYaml .Values.opensearch.masterNode.tolerations | nindent 2 }}
+
+ingress:
+  enabled: true
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+    cert-manager.io/cluster-issuer: {{ .Values.global.issuer }}
+    nginx.ingress.kubernetes.io/proxy-body-size: {{ .Values.opensearch.ingress.maxbodysize }}
+    {{ if and .Values.externalTrafficPolicy.local .Values.externalTrafficPolicy.whitelistRange.opensearch }}
+    nginx.ingress.kubernetes.io/whitelist-source-range: {{ .Values.externalTrafficPolicy.whitelistRange.opensearch }}
+    {{ end }}
+  path: /
+  hosts:
+    - {{ .Values.opensearch.subdomain }}.{{ .Values.global.opsDomain }}
+  tls:
+    - secretName: opensearch-ingress-cert
+      hosts:
+        - {{ .Values.opensearch.subdomain }}.{{ .Values.global.opsDomain }}
+
+keystore:
+  - secretName: opensearch-s3-secret
+
+plugins:
+  enabled: true
+  installList:
+   - repository-s3

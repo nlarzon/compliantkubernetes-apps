@@ -13,7 +13,7 @@ harbor:
     adminGroupName: not-used
   backup:
     enabled: true
-elasticsearch:
+opensearch:
   masterNode:
     storageSize: 1Gi
     javaOpts: -Xms512m -Xmx512m

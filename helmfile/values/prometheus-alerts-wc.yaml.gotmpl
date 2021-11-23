@@ -1,6 +1,5 @@
 # Note: These values are used for the wc reader. I.e. **in SC** despite the name
 
-esNodeCount: {{ add .Values.elasticsearch.dataNode.count .Values.elasticsearch.clientNode.count .Values.elasticsearch.masterNode.count }}
 alertmanagerJob: alertmanager-operated
 alertmanagerNamespace: {{ .Values.user.alertmanager.namespace }}
 prometheusJob: kube-prometheus-stack-prometheus

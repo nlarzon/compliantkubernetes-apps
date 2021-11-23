@@ -8,26 +8,26 @@ es:
   shards: true
   snapshots: true
   cluster_settings: false
-  {{- if or (contains "m" .Values.elasticsearch.exporter.serviceMonitor.scrapeTimeout) (contains "h" .Values.elasticsearch.exporter.serviceMonitor.scrapeTimeout) }}
+  {{- if or (contains "m" .Values.opensearch.exporter.serviceMonitor.scrapeTimeout) (contains "h" .Values.opensearch.exporter.serviceMonitor.scrapeTimeout) }}
   {{- fail "scrapeTimeout must only be given in seconds" }}
   {{ else }}
-  timeout: {{ .Values.elasticsearch.exporter.serviceMonitor.scrapeTimeout | trimSuffix "s" | atoi | add -5 }}s
+  timeout: {{ .Values.opensearch.exporter.serviceMonitor.scrapeTimeout | trimSuffix "s" | atoi | add -5 }}s
   {{- end }}
   sslSkipVerify: true
 
 # Load credentials from secret, used in uri below
-envFromSecret: opendistro-es-metrics-exporter-user
+envFromSecret: opensearch-metrics-exporter-user
 
 env:
-  ES_URI: http://$(username):$(password)@opendistro-es-client-service:9200
+  ES_URI: http://$(username):$(password)@{{ .Values.opensearch.clusterName }}-master:9200
 
 serviceMonitor:
   enabled: true
   namespace: elastic-system
   labels:
     release: kube-prometheus-stack
-  interval: {{ .Values.elasticsearch.exporter.serviceMonitor.interval }}
-  scrapeTimeout: {{ .Values.elasticsearch.exporter.serviceMonitor.scrapeTimeout }}
+  interval: {{ .Values.opensearch.exporter.serviceMonitor.interval }}
+  scrapeTimeout: {{ .Values.opensearch.exporter.serviceMonitor.scrapeTimeout }}
   scheme: http
 
 prometheusRule:
@@ -38,30 +38,30 @@ prometheusRule:
     role: operator
   rules:
   - alert: CuratorFailedToRemoveAuditLogs
-    expr: (sum(elasticsearch_indices_store_size_bytes_total{index=~"kubeaudit-(.+)"}))/(1024*1024*1024) > {{ .Values.elasticsearch.curator.retention.kubeAuditSizeGB }}
+    expr: (sum(elasticsearch_indices_store_size_bytes_total{index=~"kubeaudit-(.+)"}))/(1024*1024*1024) > {{ .Values.opensearch.curator.retention.kubeAuditSizeGB }}
     for: 5m
     labels:
       severity: critical
     annotations:
-      description: Curator failed to remove 'kubeudit' logs. Cumulated size is > {{ .Values.elasticsearch.curator.retention.kubeAuditSizeGB }} GB
+      description: Curator failed to remove 'kubeudit' logs. Cumulated size is > {{ .Values.opensearch.curator.retention.kubeAuditSizeGB }} GB
   - alert: CuratorFailedToRemoveContainerLogs
-    expr: (sum(elasticsearch_indices_store_size_bytes_total{index=~"kubernetes-(.+)"}))/(1024*1024*1024) > {{ .Values.elasticsearch.curator.retention.kubernetesSizeGB }}
+    expr: (sum(elasticsearch_indices_store_size_bytes_total{index=~"kubernetes-(.+)"}))/(1024*1024*1024) > {{ .Values.opensearch.curator.retention.kubernetesSizeGB }}
     for: 5m
     labels:
       severity: critical
     annotations:
-      description: Curator failed to remove 'kubernetes' logs. Cumulated size is > {{ .Values.elasticsearch.curator.retention.kubernetesSizeGB }} GB
+      description: Curator failed to remove 'kubernetes' logs. Cumulated size is > {{ .Values.opensearch.curator.retention.kubernetesSizeGB }} GB
   - alert: CuratorFailedToRemoveOtherLogs
-    expr: (sum(elasticsearch_indices_store_size_bytes_total{index=~"other-(.+)"}))/(1024*1024*1024) > {{ .Values.elasticsearch.curator.retention.otherSizeGB }}
+    expr: (sum(elasticsearch_indices_store_size_bytes_total{index=~"other-(.+)"}))/(1024*1024*1024) > {{ .Values.opensearch.curator.retention.otherSizeGB }}
     for: 5m
     labels:
       severity: critical
     annotations:
-      description: Curator failed to remove 'other' logs. Cumulated size is > {{ .Values.elasticsearch.curator.retention.otherSizeGB }} GB
+      description: Curator failed to remove 'other' logs. Cumulated size is > {{ .Values.opensearch.curator.retention.otherSizeGB }} GB
 
-resources: {{- toYaml .Values.elasticsearch.exporter.resources | nindent 2 }}
+resources: {{- toYaml .Values.opensearch.exporter.resources | nindent 2 }}
 
-tolerations: {{- toYaml .Values.elasticsearch.exporter.tolerations | nindent 2 }}
+tolerations: {{- toYaml .Values.opensearch.exporter.tolerations | nindent 2 }}
 
 podSecurityPolicies:
   enabled: true
