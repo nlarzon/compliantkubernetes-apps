@@ -312,6 +312,10 @@ extraConfigMaps:
         ssl_version "#{ENV['OUTPUT_SSL_VERSION']}"
         user "#{ENV['OUTPUT_USER']}"
         password "#{ENV['OUTPUT_PASSWORD']}"
+        {{ if hasKey .Values.fluentd.useLogstashSyntax }}
+        {{ logstash_format .Values.fluentd.useLogstashSyntax }}
+        logstash_prefix "${record['kubernetes']['namespace_name']}"
+        {{ end }}
         log_es_400_reason "#{ENV['OUTPUT_LOG_400_REASON']}"
         reconnect_on_error "#{ENV['OUTPUT_RECONNECT_ON_ERROR']}"
         reload_on_failure "#{ENV['OUTPUT_RELOAD_ON_FAILURE']}"
